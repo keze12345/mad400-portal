@@ -1,4 +1,18 @@
 import { useState, useEffect } from "react";
+import { initializeApp } from "firebase/app";
+import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from "firebase/firestore";
+
+// ─── Firebase Setup ───────────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyBV9mcwL9WDjV2ASeshnPTF6kEsQ5Y1YSM",
+  authDomain: "mad400-portal.firebaseapp.com",
+  projectId: "mad400-portal",
+  storageBucket: "mad400-portal.firebasestorage.app",
+  messagingSenderId: "314059861681",
+  appId: "1:314059861681:web:3ecd93111648c79038bc90"
+};
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getFirestore(firebaseApp);
 
 // ─── Default Student Data (all 147) ──────────────────────────────────────────
 const DEFAULT_STUDENTS = [
@@ -152,8 +166,6 @@ const DEFAULT_STUDENTS = [
 ];
 
 const LECTURER_PASSWORD = "MAD400@Atumkeze2026";
-const STORAGE_KEY = "mad400-grades-v2";
-const STUDENTS_KEY = "mad400-students-v2";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const calcTotal = (g) => {
@@ -164,22 +176,8 @@ const calcTotal = (g) => {
   if (vals.some(v => v === null || isNaN(v))) return null;
   return vals.reduce((a, b) => a + b, 0);
 };
-
-const scoreColor = (t) => {
-  if (t === null) return "#64748b";
-  if (t >= 70) return "#00d4aa";
-  if (t >= 50) return "#ffb340";
-  return "#ff4757";
-};
-
-const letterGrade = (t) => {
-  if (t === null) return "—";
-  if (t >= 80) return "A";
-  if (t >= 70) return "B";
-  if (t >= 60) return "C";
-  if (t >= 50) return "D";
-  return "F";
-};
+const scoreColor = (t) => { if (t === null) return "#64748b"; if (t >= 70) return "#00d4aa"; if (t >= 50) return "#ffb340"; return "#ff4757"; };
+const letterGrade = (t) => { if (t === null) return "—"; if (t >= 80) return "A"; if (t >= 70) return "B"; if (t >= 60) return "C"; if (t >= 50) return "D"; return "F"; };
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const S = {
@@ -196,6 +194,36 @@ const S = {
   badge: (color) => ({ display: "inline-block", padding: "2px 8px", borderRadius: 10, fontSize: 10, fontWeight: 600, background: color + "22", color, border: `1px solid ${color}44` }),
 };
 
+// ─── Firebase helpers ─────────────────────────────────────────────────────────
+async function loadGradesFromFirebase() {
+  try {
+    const snapshot = await getDocs(collection(db, "grades"));
+    const result = {};
+    snapshot.forEach(d => { result[d.id] = d.data(); });
+    return result;
+  } catch (e) { console.error("Firebase load error:", e); return {}; }
+}
+
+async function saveGradeToFirebase(studentId, form) {
+  try {
+    await setDoc(doc(db, "grades", studentId), { ...form, total: calcTotal(form), updatedAt: new Date().toISOString() });
+  } catch (e) { console.error("Firebase save error:", e); }
+}
+
+async function loadStudentsFromFirebase() {
+  try {
+    const d = await getDoc(doc(db, "config", "students"));
+    if (d.exists() && d.data().list) return d.data().list;
+  } catch (e) { console.error("Firebase students load error:", e); }
+  return null;
+}
+
+async function saveStudentsToFirebase(students) {
+  try {
+    await setDoc(doc(db, "config", "students"), { list: students, updatedAt: new Date().toISOString() });
+  } catch (e) { console.error("Firebase students save error:", e); }
+}
+
 // ─── Login Screen ─────────────────────────────────────────────────────────────
 function LoginScreen({ onLogin, students }) {
   const [role, setRole] = useState("student");
@@ -206,19 +234,13 @@ function LoginScreen({ onLogin, students }) {
   const handleLogin = () => {
     setError("");
     if (role === "lecturer") {
-      if (password === LECTURER_PASSWORD) {
-        onLogin("lecturer", null);
-      } else {
-        setError("Incorrect password.");
-      }
+      if (password === LECTURER_PASSWORD) { onLogin("lecturer", null); }
+      else { setError("Incorrect password."); }
     } else {
       const norm = studentId.trim().toUpperCase();
       const match = students.find(s => s.id.toUpperCase() === norm);
-      if (match) {
-        onLogin("student", match.id);
-      } else {
-        setError("Student ID not found in the MAD400 roster.");
-      }
+      if (match) { onLogin("student", match.id); }
+      else { setError("Matricule number not found in the MAD400 roster."); }
     }
   };
 
@@ -259,9 +281,7 @@ function StudentView({ studentId, grades, students, onLogout }) {
   const g = grades[studentId] || {};
   const total = calcTotal(g);
   const letter = letterGrade(total);
-
   if (!student) return <div style={{ color: "#ff4757", padding: 40 }}>Student not found.</div>;
-
   const criteria = [
     { key: "s1", label: "Foundation & Setup", max: 20 },
     { key: "s2", label: "Core Functionality", max: 30 },
@@ -269,7 +289,6 @@ function StudentView({ studentId, grades, students, onLogout }) {
     { key: "s4", label: "UI Polish", max: 10 },
     { key: "s5", label: "Code Quality", max: 10 },
   ];
-
   return (
     <div style={S.page}>
       <div style={S.header}>
@@ -293,14 +312,13 @@ function StudentView({ studentId, grades, students, onLogout }) {
             </div>
           )}
         </div>
-
         {total === null ? (
-          <div style={{ background: "#14171f", border: "1px solid #252a38", borderRadius: 10, padding: 32, textAlign: "center", marginBottom: 20 }}>
+          <div style={{ background: "#14171f", border: "1px solid #252a38", borderRadius: 10, padding: 32, textAlign: "center" }}>
             <div style={{ fontSize: 14, color: "#64748b", marginBottom: 8 }}>Your grade has not been posted yet.</div>
             <div style={{ fontSize: 11, color: "#464e5e" }}>Check back later or contact your lecturer.</div>
           </div>
         ) : (
-          <div style={{ background: "#14171f", border: "1px solid #252a38", borderRadius: 10, padding: 24, marginBottom: 20 }}>
+          <div style={{ background: "#14171f", border: "1px solid #252a38", borderRadius: 10, padding: 24 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
               <div>
                 <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>TOTAL SCORE</div>
@@ -313,26 +331,24 @@ function StudentView({ studentId, grades, students, onLogout }) {
                 <div style={{ fontSize: 10, color: "#64748b" }}>GRADE</div>
               </div>
             </div>
-            <div style={{ background: "#1c2030", borderRadius: 4, height: 6, overflow: "hidden" }}>
+            <div style={{ background: "#1c2030", borderRadius: 4, height: 6, overflow: "hidden", marginBottom: 20 }}>
               <div style={{ width: `${total}%`, height: "100%", background: scoreColor(total), borderRadius: 4, transition: "width 0.5s" }} />
             </div>
-            <div style={{ marginTop: 20 }}>
-              <div style={{ fontSize: 11, color: "#64748b", marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.5px" }}>Score Breakdown</div>
-              {criteria.map(c => {
-                const val = g[c.key] !== undefined && g[c.key] !== "" ? parseFloat(g[c.key]) : null;
-                return (
-                  <div key={c.key} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                    <div style={{ flex: 1, fontSize: 12 }}>{c.label}</div>
-                    <div style={{ width: 80, background: "#1c2030", borderRadius: 3, height: 4, overflow: "hidden" }}>
-                      <div style={{ width: val !== null ? `${(val / c.max) * 100}%` : "0%", height: "100%", background: val !== null ? scoreColor((val / c.max) * 100) : "#252a38" }} />
-                    </div>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 13, fontWeight: 600, color: val !== null ? scoreColor((val / c.max) * 100) : "#464e5e", minWidth: 50, textAlign: "right" }}>
-                      {val !== null ? `${val}/${c.max}` : `—/${c.max}`}
-                    </div>
+            <div style={{ fontSize: 11, color: "#64748b", marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.5px" }}>Score Breakdown</div>
+            {criteria.map(c => {
+              const val = g[c.key] !== undefined && g[c.key] !== "" ? parseFloat(g[c.key]) : null;
+              return (
+                <div key={c.key} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                  <div style={{ flex: 1, fontSize: 12 }}>{c.label}</div>
+                  <div style={{ width: 80, background: "#1c2030", borderRadius: 3, height: 4, overflow: "hidden" }}>
+                    <div style={{ width: val !== null ? `${(val / c.max) * 100}%` : "0%", height: "100%", background: val !== null ? scoreColor((val / c.max) * 100) : "#252a38" }} />
                   </div>
-                );
-              })}
-            </div>
+                  <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 13, fontWeight: 600, color: val !== null ? scoreColor((val / c.max) * 100) : "#464e5e", minWidth: 50, textAlign: "right" }}>
+                    {val !== null ? `${val}/${c.max}` : `—/${c.max}`}
+                  </div>
+                </div>
+              );
+            })}
             {g.notes && (
               <div style={{ marginTop: 16, padding: "12px 14px", background: "#1c2030", borderRadius: 6, borderLeft: "3px solid #5b8cff" }}>
                 <div style={{ fontSize: 10, color: "#64748b", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.5px" }}>Lecturer Notes</div>
@@ -350,64 +366,50 @@ function StudentView({ studentId, grades, students, onLogout }) {
 function AddStudentModal({ onAdd, onClose, existingIds }) {
   const [form, setForm] = useState({ name: "", id: "", dept: "Software Engineering", github: "", recording: "", collab: "Yes", files: "5" });
   const [error, setError] = useState("");
-
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
-
   const handleAdd = () => {
     if (!form.name.trim()) { setError("Name is required."); return; }
-    if (!form.id.trim()) { setError("Student ID (Matricule) is required."); return; }
-    if (existingIds.includes(form.id.trim().toUpperCase())) { setError("This Student ID already exists in the roster."); return; }
+    if (!form.id.trim()) { setError("Matricule number is required."); return; }
+    if (existingIds.includes(form.id.trim().toUpperCase())) { setError("This Matricule number already exists."); return; }
     onAdd({ ...form, id: form.id.trim(), name: form.name.trim(), flags: [] });
     onClose();
   };
-
-  const inputStyle = { width: "100%", background: "#1c2030", border: "1px solid #252a38", borderRadius: 6, padding: "8px 10px", color: "#e2e8f0", fontFamily: "'DM Mono', monospace", fontSize: 12, outline: "none", boxSizing: "border-box", marginBottom: 10 };
-  const labelStyle = { fontSize: 10, color: "#64748b", marginBottom: 4, display: "block", textTransform: "uppercase", letterSpacing: "0.5px" };
-
+  const iStyle = { width: "100%", background: "#1c2030", border: "1px solid #252a38", borderRadius: 6, padding: "8px 10px", color: "#e2e8f0", fontFamily: "'DM Mono', monospace", fontSize: 12, outline: "none", boxSizing: "border-box", marginBottom: 10 };
+  const lStyle = { fontSize: 10, color: "#64748b", marginBottom: 4, display: "block", textTransform: "uppercase", letterSpacing: "0.5px" };
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 400, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={e => e.target === e.currentTarget && onClose()}>
       <div style={{ background: "#14171f", border: "1px solid #252a38", borderRadius: 12, padding: 28, width: 480, maxHeight: "90vh", overflowY: "auto", position: "relative" }}>
         <button onClick={onClose} style={{ position: "absolute", right: 20, top: 18, background: "none", border: "none", color: "#64748b", fontSize: 20, cursor: "pointer" }}>×</button>
         <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 17, fontWeight: 800, color: "#fff", marginBottom: 4 }}>Add New Student</div>
         <div style={{ fontSize: 11, color: "#64748b", marginBottom: 20 }}>Manually add a student to the MAD400 roster</div>
-
-        <label style={labelStyle}>Full Name *</label>
-        <input style={inputStyle} placeholder="e.g. JOHN DOE SMITH" value={form.name} onChange={e => set("name", e.target.value)} />
-
-        <label style={labelStyle}>Matricule Number (Student ID) *</label>
-        <input style={inputStyle} placeholder="e.g. LMUI250999" value={form.id} onChange={e => set("id", e.target.value)} />
-
-        <label style={labelStyle}>Department</label>
-        <input style={inputStyle} placeholder="Software Engineering" value={form.dept} onChange={e => set("dept", e.target.value)} />
-
-        <label style={labelStyle}>GitHub Repo URL</label>
-        <input style={inputStyle} placeholder="https://github.com/username/MAD400-..." value={form.github} onChange={e => set("github", e.target.value)} />
-
-        <label style={labelStyle}>Screen Recording URL</label>
-        <input style={inputStyle} placeholder="https://drive.google.com/..." value={form.recording} onChange={e => set("recording", e.target.value)} />
-
+        <label style={lStyle}>Full Name *</label>
+        <input style={iStyle} placeholder="e.g. JOHN DOE SMITH" value={form.name} onChange={e => set("name", e.target.value)} />
+        <label style={lStyle}>Matricule Number *</label>
+        <input style={iStyle} placeholder="e.g. LMUI250999" value={form.id} onChange={e => set("id", e.target.value)} />
+        <label style={lStyle}>Department</label>
+        <input style={iStyle} placeholder="Software Engineering" value={form.dept} onChange={e => set("dept", e.target.value)} />
+        <label style={lStyle}>GitHub Repo URL</label>
+        <input style={iStyle} placeholder="https://github.com/username/MAD400-..." value={form.github} onChange={e => set("github", e.target.value)} />
+        <label style={lStyle}>Screen Recording URL</label>
+        <input style={iStyle} placeholder="https://drive.google.com/..." value={form.recording} onChange={e => set("recording", e.target.value)} />
         <div style={{ display: "flex", gap: 12 }}>
           <div style={{ flex: 1 }}>
-            <label style={labelStyle}>Collaborator Added?</label>
-            <select value={form.collab} onChange={e => set("collab", e.target.value)}
-              style={{ ...inputStyle, marginBottom: 10 }}>
+            <label style={lStyle}>Collaborator Added?</label>
+            <select value={form.collab} onChange={e => set("collab", e.target.value)} style={{ ...iStyle }}>
               <option value="Yes">Yes</option>
               <option value="No">No</option>
             </select>
           </div>
           <div style={{ flex: 1 }}>
-            <label style={labelStyle}>File Count</label>
-            <select value={form.files} onChange={e => set("files", e.target.value)}
-              style={{ ...inputStyle, marginBottom: 10 }}>
+            <label style={lStyle}>File Count</label>
+            <select value={form.files} onChange={e => set("files", e.target.value)} style={{ ...iStyle }}>
               <option value="5">5</option>
               <option value="6–8">6–8</option>
               <option value="9+">9+</option>
             </select>
           </div>
         </div>
-
         {error && <div style={{ fontSize: 11, color: "#ff4757", marginBottom: 10 }}>⚠ {error}</div>}
-
         <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 4 }}>
           <button onClick={onClose} style={{ background: "#1c2030", border: "1px solid #252a38", borderRadius: 6, padding: "8px 20px", color: "#64748b", fontFamily: "'DM Mono', monospace", fontSize: 12, cursor: "pointer" }}>Cancel</button>
           <button onClick={handleAdd} style={{ background: "#00d4aa", border: "none", borderRadius: 6, padding: "8px 20px", color: "#0d0f14", fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>Add Student</button>
@@ -420,8 +422,8 @@ function AddStudentModal({ onAdd, onClose, existingIds }) {
 // ─── Grade Modal ──────────────────────────────────────────────────────────────
 function GradeModal({ student, grades, onSave, onClose }) {
   const existing = grades[student.id] || {};
-  const [form, setForm] = useState({ s1: existing.s1 || "", s2: existing.s2 || "", s3: existing.s3 || "", s4: existing.s4 || "", s5: existing.s5 || "", notes: existing.notes || "" });
-
+  const [form, setForm] = useState({ s1: existing.s1 ?? "", s2: existing.s2 ?? "", s3: existing.s3 ?? "", s4: existing.s4 ?? "", s5: existing.s5 ?? "", notes: existing.notes ?? "" });
+  const [saving, setSaving] = useState(false);
   const criteria = [
     { key: "s1", label: "Foundation & Setup", max: 20 },
     { key: "s2", label: "Core Functionality", max: 30 },
@@ -429,17 +431,20 @@ function GradeModal({ student, grades, onSave, onClose }) {
     { key: "s4", label: "UI Polish", max: 10 },
     { key: "s5", label: "Code Quality", max: 10 },
   ];
-
   const total = calcTotal(form);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
-
+  const handleSave = async () => {
+    setSaving(true);
+    await onSave(student.id, form);
+    setSaving(false);
+    onClose();
+  };
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={e => e.target === e.currentTarget && onClose()}>
       <div style={{ background: "#14171f", border: "1px solid #252a38", borderRadius: 12, padding: 28, width: 520, maxHeight: "88vh", overflowY: "auto", position: "relative" }}>
-        <button onClick={onClose} style={{ position: "absolute", right: 20, top: 18, background: "none", border: "none", color: "#64748b", fontSize: 20, cursor: "pointer", lineHeight: 1 }}>×</button>
+        <button onClick={onClose} style={{ position: "absolute", right: 20, top: 18, background: "none", border: "none", color: "#64748b", fontSize: 20, cursor: "pointer" }}>×</button>
         <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 17, fontWeight: 800, color: "#fff", marginBottom: 2 }}>{student.name}</div>
         <div style={{ fontSize: 11, color: "#64748b", marginBottom: 20 }}>{student.id} · {student.dept}</div>
-
         {student.flags && student.flags.length > 0 && (
           <div style={{ marginBottom: 16 }}>
             {student.flags.map((f, i) => (
@@ -450,7 +455,6 @@ function GradeModal({ student, grades, onSave, onClose }) {
             <div style={{ borderTop: "1px solid #252a38", marginTop: 12, paddingTop: 12 }} />
           </div>
         )}
-
         <div style={{ marginBottom: 14 }}>
           <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>Links</div>
           <div style={{ fontSize: 11 }}>
@@ -463,7 +467,6 @@ function GradeModal({ student, grades, onSave, onClose }) {
               : <a href={student.recording} target="_blank" rel="noreferrer" style={{ color: "#00d4aa", textDecoration: "none" }}>▶ Recording</a>}
           </div>
         </div>
-
         <div style={{ borderTop: "1px solid #252a38", paddingTop: 16, marginBottom: 8 }}>
           <div style={{ fontSize: 11, color: "#64748b", marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.5px" }}>Grading</div>
           {criteria.map(c => {
@@ -480,41 +483,39 @@ function GradeModal({ student, grades, onSave, onClose }) {
             );
           })}
         </div>
-
         <div style={{ background: "#1c2030", borderRadius: 8, padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
           <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 13 }}>Total</span>
           <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 26, fontWeight: 800, color: scoreColor(total) }}>
             {total !== null ? `${total}/100` : "—"}
           </span>
         </div>
-
         <div style={{ marginBottom: 16 }}>
           <div style={{ fontSize: 11, color: "#64748b", marginBottom: 6 }}>Notes (optional)</div>
           <textarea value={form.notes} onChange={e => set("notes", e.target.value)}
             style={{ width: "100%", background: "#1c2030", border: "1px solid #252a38", borderRadius: 6, padding: "10px 12px", color: "#e2e8f0", fontFamily: "'DM Mono', monospace", fontSize: 12, resize: "vertical", minHeight: 72, outline: "none", boxSizing: "border-box" }} />
         </div>
-
         <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
           <button onClick={onClose} style={{ background: "#1c2030", border: "1px solid #252a38", borderRadius: 6, padding: "8px 20px", color: "#64748b", fontFamily: "'DM Mono', monospace", fontSize: 12, cursor: "pointer" }}>Cancel</button>
-          <button onClick={() => onSave(student.id, form)} style={{ background: "#5b8cff", border: "none", borderRadius: 6, padding: "8px 20px", color: "#fff", fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>Save Grade</button>
+          <button onClick={handleSave} disabled={saving} style={{ background: saving ? "#3a5cbf" : "#5b8cff", border: "none", borderRadius: 6, padding: "8px 20px", color: "#fff", fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 12, cursor: saving ? "wait" : "pointer" }}>
+            {saving ? "Saving…" : "Save Grade"}
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
-// ─── Lecturer Dashboard ────────────────────────────────────────────────────────
+// ─── Lecturer Dashboard ───────────────────────────────────────────────────────
 function LecturerDashboard({ grades, students, onSave, onAddStudent, onLogout }) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [sort, setSort] = useState(null);
   const [sortDir, setSortDir] = useState(1);
   const [modal, setModal] = useState(null);
-  const [showAddStudent, setShowAddStudent] = useState(false);
+  const [showAdd, setShowAdd] = useState(false);
   const [toast, setToast] = useState("");
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2500); };
-
   const isFlagged = s => s.flags && s.flags.length > 0;
   const hasNoRec = s => !s.recording || s.recording.startsWith("[");
   const hasNoCollab = s => s.collab === "No";
@@ -532,28 +533,19 @@ function LecturerDashboard({ grades, students, onSave, onAddStudent, onLogout })
     return true;
   }).sort((a, b) => {
     if (!sort) return 0;
-    if (sort === "total") {
-      const at = calcTotal(grades[a.id]) ?? -1;
-      const bt = calcTotal(grades[b.id]) ?? -1;
-      return (at - bt) * sortDir;
-    }
+    if (sort === "total") { const at = calcTotal(grades[a.id]) ?? -1; const bt = calcTotal(grades[b.id]) ?? -1; return (at - bt) * sortDir; }
     return String(a[sort]).localeCompare(String(b[sort])) * sortDir;
   });
 
   const allTotals = students.map(s => calcTotal(grades[s.id])).filter(x => x !== null);
   const gradedCount = allTotals.length;
   const avg = gradedCount > 0 ? Math.round(allTotals.reduce((a, b) => a + b, 0) / gradedCount) : null;
-  const flagCount = students.filter(isFlagged).length;
 
-  const toggleSort = (col) => {
-    if (sort === col) setSortDir(d => d * -1);
-    else { setSort(col); setSortDir(1); }
-  };
+  const toggleSort = (col) => { if (sort === col) setSortDir(d => d * -1); else { setSort(col); setSortDir(1); } };
 
-  const handleSaveGrade = (sid, form) => {
-    onSave(sid, form);
-    setModal(null);
-    showToast("Grade saved ✓");
+  const handleSaveGrade = async (sid, form) => {
+    await onSave(sid, form);
+    showToast("Grade saved to cloud ✓");
   };
 
   const exportCSV = () => {
@@ -587,12 +579,7 @@ function LecturerDashboard({ grades, students, onSave, onAddStudent, onLogout })
           <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>Lecturer: Atumkeze · Flutter Task Manager · Deadline: 16 May 2026</div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-          {[
-            { val: students.length, label: "Submissions", color: "#5b8cff" },
-            { val: flagCount, label: "Flagged", color: "#ffb340" },
-            { val: gradedCount, label: "Graded", color: "#00d4aa" },
-            { val: avg ?? "—", label: "Avg", color: "#e2e8f0" },
-          ].map(({ val, label, color }) => (
+          {[{ val: students.length, label: "Submissions", color: "#5b8cff" }, { val: students.filter(isFlagged).length, label: "Flagged", color: "#ffb340" }, { val: gradedCount, label: "Graded", color: "#00d4aa" }, { val: avg ?? "—", label: "Avg", color: "#e2e8f0" }].map(({ val, label, color }) => (
             <div key={label} style={{ textAlign: "right" }}>
               <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 20, fontWeight: 700, color }}>{val}</div>
               <div style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase" }}>{label}</div>
@@ -601,7 +588,6 @@ function LecturerDashboard({ grades, students, onSave, onAddStudent, onLogout })
           <button onClick={onLogout} style={{ background: "none", border: "1px solid #252a38", borderRadius: 6, padding: "6px 14px", color: "#64748b", fontFamily: "'DM Mono', monospace", fontSize: 11, cursor: "pointer" }}>Sign Out</button>
         </div>
       </div>
-
       <div style={{ maxWidth: 1600, margin: "0 auto", padding: "20px 24px" }}>
         <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap", alignItems: "center" }}>
           <input style={{ ...S.input, width: 260, marginBottom: 0 }} placeholder="🔍 Search name, ID, dept…" value={search} onChange={e => setSearch(e.target.value)} />
@@ -612,17 +598,10 @@ function LecturerDashboard({ grades, students, onSave, onAddStudent, onLogout })
             </button>
           ))}
           <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-            <button onClick={() => setShowAddStudent(true)}
-              style={{ background: "#00d4aa22", border: "1px solid #00d4aa44", borderRadius: 6, padding: "6px 14px", color: "#00d4aa", fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 11, cursor: "pointer" }}>
-              + Add Student
-            </button>
-            <button onClick={exportCSV}
-              style={{ background: "#14171f", border: "1px solid #252a38", borderRadius: 6, padding: "6px 14px", color: "#e2e8f0", fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 11, cursor: "pointer" }}>
-              Export CSV
-            </button>
+            <button onClick={() => setShowAdd(true)} style={{ background: "#00d4aa22", border: "1px solid #00d4aa44", borderRadius: 6, padding: "6px 14px", color: "#00d4aa", fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 11, cursor: "pointer" }}>+ Add Student</button>
+            <button onClick={exportCSV} style={{ background: "#14171f", border: "1px solid #252a38", borderRadius: 6, padding: "6px 14px", color: "#e2e8f0", fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 11, cursor: "pointer" }}>Export CSV</button>
           </div>
         </div>
-
         <div style={{ background: "#14171f", border: "1px solid #252a38", borderRadius: 10, overflow: "hidden" }}>
           <div style={{ padding: "8px 16px", fontSize: 11, color: "#64748b", borderBottom: "1px solid #252a38", display: "flex", justifyContent: "space-between" }}>
             <span>Showing {filtered.length} of {students.length} students</span>
@@ -650,51 +629,27 @@ function LecturerDashboard({ grades, students, onSave, onAddStudent, onLogout })
                       onMouseEnter={e => e.currentTarget.style.background = "#1c2030"}
                       onMouseLeave={e => e.currentTarget.style.background = isCritical ? "rgba(255,71,87,0.04)" : "transparent"}>
                       <td style={{ padding: "9px 12px", color: "#64748b", fontSize: 11 }}>{vi + 1}</td>
-                      <td style={{ padding: "9px 12px" }}>
-                        <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 12, fontWeight: 600, color: "#fff" }}>{s.name}</div>
-                      </td>
+                      <td style={{ padding: "9px 12px" }}><div style={{ fontFamily: "'Syne', sans-serif", fontSize: 12, fontWeight: 600, color: "#fff" }}>{s.name}</div></td>
                       <td style={{ padding: "9px 12px", fontSize: 11, color: "#64748b" }}>{s.id}</td>
                       <td style={{ padding: "9px 12px", fontSize: 11, color: "#e2e8f0" }}>{s.dept}</td>
-                      <td style={{ padding: "9px 12px" }}>
-                        <span style={S.badge(s.collab === "Yes" ? "#00d4aa" : "#ff4757")}>{s.collab === "Yes" ? "✓ Yes" : "✗ No"}</span>
-                      </td>
+                      <td style={{ padding: "9px 12px" }}><span style={S.badge(s.collab === "Yes" ? "#00d4aa" : "#ff4757")}>{s.collab === "Yes" ? "✓ Yes" : "✗ No"}</span></td>
                       <td style={{ padding: "9px 12px", maxWidth: 220 }}>
-                        {!s.flags || s.flags.length === 0
-                          ? <span style={{ fontSize: 10, color: "#464e5e" }}>—</span>
-                          : s.flags.map((f, fi) => (
-                            <div key={fi} style={{ fontSize: 10, color: f.type === "critical" ? "#ff4757" : "#ffb340", marginBottom: 2 }}>
-                              {f.type === "critical" ? "🔴" : "🟡"} {f.msg.slice(0, 45)}{f.msg.length > 45 ? "…" : ""}
-                            </div>
-                          ))}
+                        {!s.flags || s.flags.length === 0 ? <span style={{ fontSize: 10, color: "#464e5e" }}>—</span> :
+                          s.flags.map((f, fi) => <div key={fi} style={{ fontSize: 10, color: f.type === "critical" ? "#ff4757" : "#ffb340", marginBottom: 2 }}>{f.type === "critical" ? "🔴" : "🟡"} {f.msg.slice(0, 45)}{f.msg.length > 45 ? "…" : ""}</div>)}
                       </td>
-                      <td style={{ padding: "9px 12px" }}>
-                        <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 16, fontWeight: 700, color: scoreColor(total) }}>{total ?? "—"}</span>
-                      </td>
+                      <td style={{ padding: "9px 12px" }}><span style={{ fontFamily: "'Syne', sans-serif", fontSize: 16, fontWeight: 700, color: scoreColor(total) }}>{total ?? "—"}</span></td>
                     </tr>
                   );
                 })}
-                {filtered.length === 0 && (
-                  <tr><td colSpan={7} style={{ padding: 40, textAlign: "center", color: "#64748b" }}>No students match.</td></tr>
-                )}
+                {filtered.length === 0 && <tr><td colSpan={7} style={{ padding: 40, textAlign: "center", color: "#64748b" }}>No students match.</td></tr>}
               </tbody>
             </table>
           </div>
         </div>
       </div>
-
       {modal && <GradeModal student={modal} grades={grades} onSave={handleSaveGrade} onClose={() => setModal(null)} />}
-      {showAddStudent && (
-        <AddStudentModal
-          onAdd={onAddStudent}
-          onClose={() => setShowAddStudent(false)}
-          existingIds={students.map(s => s.id.toUpperCase())}
-        />
-      )}
-      {toast && (
-        <div style={{ position: "fixed", bottom: 24, right: 24, background: "#00d4aa", color: "#0d0f14", padding: "10px 18px", borderRadius: 8, fontSize: 12, fontFamily: "'Syne', sans-serif", fontWeight: 700, boxShadow: "0 4px 20px rgba(0,212,170,0.3)", zIndex: 500 }}>
-          {toast}
-        </div>
-      )}
+      {showAdd && <AddStudentModal onAdd={onAddStudent} onClose={() => setShowAdd(false)} existingIds={students.map(s => s.id.toUpperCase())} />}
+      {toast && <div style={{ position: "fixed", bottom: 24, right: 24, background: "#00d4aa", color: "#0d0f14", padding: "10px 18px", borderRadius: 8, fontSize: 12, fontFamily: "'Syne', sans-serif", fontWeight: 700, boxShadow: "0 4px 20px rgba(0,212,170,0.3)", zIndex: 500 }}>{toast}</div>}
     </div>
   );
 }
@@ -707,57 +662,36 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const savedGrades = localStorage.getItem(STORAGE_KEY);
-      if (savedGrades) setGrades(JSON.parse(savedGrades));
-    } catch (e) { console.error("Failed to load grades", e); }
-
-    try {
-      const savedStudents = localStorage.getItem(STUDENTS_KEY);
-      if (savedStudents) {
-        const parsed = JSON.parse(savedStudents);
-        if (Array.isArray(parsed) && parsed.length > 0) setStudents(parsed);
-      }
-    } catch (e) { console.error("Failed to load students", e); }
-
-    setLoading(false);
+    (async () => {
+      const [fbGrades, fbStudents] = await Promise.all([loadGradesFromFirebase(), loadStudentsFromFirebase()]);
+      setGrades(fbGrades);
+      if (fbStudents && fbStudents.length > 0) setStudents(fbStudents);
+      setLoading(false);
+    })();
   }, []);
 
-  const saveGrade = (studentId, form) => {
+  const saveGrade = async (studentId, form) => {
     const newGrades = { ...grades, [studentId]: { ...form, total: calcTotal(form) } };
     setGrades(newGrades);
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(newGrades)); }
-    catch (e) { console.error("Storage save failed:", e); }
+    await saveGradeToFirebase(studentId, form);
   };
 
-  const addStudent = (newStudent) => {
+  const addStudent = async (newStudent) => {
     const updated = [...students, newStudent];
     setStudents(updated);
-    try { localStorage.setItem(STUDENTS_KEY, JSON.stringify(updated)); }
-    catch (e) { console.error("Student save failed:", e); }
+    await saveStudentsToFirebase(updated);
   };
 
   if (loading) {
     return (
-      <div style={{ ...S.center, flexDirection: "column", gap: 12 }}>
-        <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 14, color: "#64748b" }}>Loading portal…</div>
+      <div style={{ ...S.center, flexDirection: "column", gap: 16 }}>
+        <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 16, color: "#5b8cff", fontWeight: 700 }}>MAD400 Portal</div>
+        <div style={{ fontSize: 12, color: "#64748b" }}>Connecting to database…</div>
       </div>
     );
   }
 
   if (!session) return <LoginScreen onLogin={(role, id) => setSession({ role, id })} students={students} />;
-
-  if (session.role === "lecturer") {
-    return (
-      <LecturerDashboard
-        grades={grades}
-        students={students}
-        onSave={saveGrade}
-        onAddStudent={addStudent}
-        onLogout={() => setSession(null)}
-      />
-    );
-  }
-
+  if (session.role === "lecturer") return <LecturerDashboard grades={grades} students={students} onSave={saveGrade} onAddStudent={addStudent} onLogout={() => setSession(null)} />;
   return <StudentView studentId={session.id} grades={grades} students={students} onLogout={() => setSession(null)} />;
 }

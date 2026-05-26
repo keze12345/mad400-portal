@@ -1,19 +1,77 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 
-// ─── Student Data ─────────────────────────────────────────────────────────────
-const STUDENTS = [
-  { name: "ZIPOH CHELSEA", id: "LMUI250989", dept: "Software Engineering", github: "https://github.com/ChelseaZipoh/MAD400-LMUI250989-TaskManager", recording: "[INVALID: wrote 'Okay sir']", collab: "Yes", files: "6–8", flags: [{ type: "critical", msg: "No screen recording submitted — wrote 'Okay sir'" }] },
-  { name: "Ngo Baone Essoubat Marilyne", id: "LMUI250895", dept: "Software Engineering", github: "https://github.com/Marilynebaone/MAD400--LMUI250895--TaskManager", recording: "[INVALID: docs.google.com/open link]", collab: "Yes", files: "6–8", flags: [{ type: "warn", msg: "Recording is Google Drive open link — verify accessible" }] },
-  { name: "Divine Chinecherem Nnamdi", id: "LMUI250756", dept: "Software Engineering", github: "https://github.com/divine0756/MAD400-LMUI250756-TaskManager", recording: "[INVALID: submitted GitHub link instead]", collab: "Yes", files: "6–8", flags: [{ type: "critical", msg: "Submitted GitHub repo link as recording — no screen recording" }] },
-  { name: "FUNWI CHELSEA NCHANGNWI", id: "LMUI24SWE291", dept: "Software Engineering", github: "https://github.com/Chelseafunwi/MAD400-LMUI24SWE291-TaskManager", recording: "https://drive.google.com/file/d/1xJhG7Oc2mR8dK3pL5nQ9vT4uY6wX0bA/view", collab: "No", files: "6–8", flags: [{ type: "warn", msg: "Lecturer NOT added as collaborator" }] },
-  { name: "Nana Fabu Kongla Disue", id: "LMUI250871", dept: "Software Engineering", github: "https://github.com/NanaFabu/MAD400-LMUI250871-TaskManager", recording: "https://drive.google.com/file/d/1aB2cD3eF4gH5iJ6kL7mN8oP9qR0sT1u/view", collab: "No", files: "5", flags: [{ type: "warn", msg: "Lecturer NOT added as collaborator" }] },
-  { name: "Ineube Kemmerick Ibanjoh", id: "LMUI24SWE293", dept: "Software Engineering", github: "https://github.com/KemmerickIneube/MAD400-LMUI24SWE293-TaskManager", recording: "https://drive.google.com/file/d/1vW2xX3yY4zA5bB6cC7dD8eE9fF0gG1h/view", collab: "No", files: "6–8", flags: [{ type: "warn", msg: "Lecturer NOT added as collaborator" }] },
-  { name: "Ntah Alvin Tafah", id: "LMUI250922", dept: "Software Engineering", github: "https://github.com/AlvinTafah/MAD400-LMUI250922-TaskManager", recording: "https://drive.google.com/file/d/1hH2iI3jJ4kK5lL6mM7nN8oO9pP0qQ1r/view", collab: "No", files: "5", flags: [{ type: "warn", msg: "Lecturer NOT added as collaborator" }] },
-  { name: "NJI DURELL", id: "LMUI250906", dept: "Software Engineering", github: "[BROKEN: GitHub URL has no username]", recording: "https://drive.google.com/file/d/1rR2sS3tT4uU5vV6wW7xX8yY9zZ0aA1b/view", collab: "Yes", files: "5", flags: [{ type: "critical", msg: "GitHub URL is broken — no username in URL" }] },
-  { name: "NOFONDO EPITE FRANCIS", id: "LMUI250916", dept: "Software Engineering", github: "[BROKEN: GitHub link not valid]", recording: "https://drive.google.com/file/d/1bB2cC3dD4eE5fF6gG7hH8iI9jJ0kK1l/view", collab: "Yes", files: "5", flags: [{ type: "critical", msg: "GitHub link is broken" }] },
-  { name: "ASONGSEH QUEENTIN A", id: "LMUI250701", dept: "Software Engineering", github: "https://github.com/QueetinAsongseh/MAD400-YourStudentID-TaskManager", recording: "https://drive.google.com/file/d/1lL2mM3nN4oO5pP6qQ7rR8sS9tT0uU1v/view", collab: "Yes", files: "6–8", flags: [{ type: "critical", msg: "GitHub repo still has placeholder 'YourStudentID' — not updated" }] },
-  { name: "MAXIMINUS MBONI FEH", id: "LMUI250845", dept: "SWE", github: "https://github.com/MaximinusMboni/MAD400-LMUI250845-TaskManager", recording: "https://drive.google.com/file/d/1vV2wW3xX4yY5zZ6aA7bB8cC9dD0eE1f/view", collab: "Yes", files: "6–8", flags: [{ type: "critical", msg: "ID LMUI250845 also claimed by 'MBONGWOH ULRICH' — INVESTIGATE" }] },
-  { name: "AJOCHA PRECIOUS TAJOCHA", id: "LMUI250677", dept: "SWE", github: "https://github.com/PreciousTajocha/MAD400-LMUI250677-TaskManager", recording: "https://drive.google.com/file/d/1fF2gG3hH4iI5jJ6kK7lL8mM9nN0oO1p/view", collab: "Yes", files: "5", flags: [{ type: "critical", msg: "ID LMUI250677 also claimed by 'Ambe precious Neba' — INVESTIGATE" }] },
+// ─── Default Student Data (all 147) ──────────────────────────────────────────
+const DEFAULT_STUDENTS = [
+  { name: "AGBOR DIDIER AYUK-NTUI", id: "LMUI2637007", dept: "SOFTWARE ENGINEERING", github: "https://github.com/agbordidier610-dev/-MAD400-LMUI2637007-TaskManager", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [] },
+  { name: "Bambe Tyler-praise Nfaih", id: "LMUI250719", dept: "SWE", github: "https://github.com/BambeTyler/MAD400-LMUI250719-TaskManager", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [] },
+  { name: "ASONGSEH QUEENTIN A", id: "LMUI250706", dept: "SWE", github: "https://github.com/Sarkodie3/MAD400--YourStudentID--TaskManager.git", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [{ type: "critical", msg: "Repo still contains 'YourStudentID' placeholder!" }] },
+  { name: "Epie Kajeta Nzeh", id: "LMUI250784", dept: "Computer Engineering (SWE)", github: "https://github.com/EpiekajetaNzeh/MAD400-LMUI250874-TaskManager", recording: "https://drive.google.com/file/view", collab: "Yes", files: "5", flags: [{ type: "warn", msg: "Repo uses LMUI250874 but form says LMUI250784 — digits swapped" }] },
+  { name: "NJI DURELL", id: "LMUI250908", dept: "SOFTWARE ENGINEERING", github: "[BROKEN: MAD400-LMUI250908-TaskManager — no username]", recording: "https://drive.google.com/file/view", collab: "Yes", files: "5", flags: [{ type: "critical", msg: "GitHub URL appears broken — no username in URL" }] },
+  { name: "FUAFUELAKA MOSCO", id: "LMUI25SWE0817", dept: "COMPUTER ENGINEERING", github: "https://github.com/FUAFUELAKAMOSCO/MAD400-25SWE0817-TaskManager", recording: "https://drive.google.com/file/view", collab: "Yes", files: "5", flags: [] },
+  { name: "Eboule Cedric Julien", id: "LMUI250762", dept: "Software Engineering", github: "https://github.com/Cjayy77/-MAD400-LMUI250762-TaskManager", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [] },
+  { name: "QUEEN CLAIRE BATO MAYA KWO", id: "LMUI250938", dept: "SOFTWARE ENGINEERING", github: "https://github.com/queenclairemaya/MAD400-LMUI250938-TaskManager", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [] },
+  { name: "Ngulefeh Ashley Nkengawung", id: "LMUI250900", dept: "Software", github: "https://github.com/Ashley237/taskmanager", recording: "https://drive.google.com/file/view", collab: "Yes", files: "5", flags: [{ type: "warn", msg: "Repo not named per required format (no MAD400-StudentID)" }] },
+  { name: "Biki God's will", id: "LMUI24SWE286", dept: "Software Engineering", github: "https://github.com/BikiGodswill/MAD400-LMUI24SWE286-TaskManager", recording: "https://drive.google.com/file/view", collab: "Yes", files: "5", flags: [] },
+  { name: "Samuel motomby", id: "LMUI250943", dept: "Software Engineering", github: "https://github.com/Motomby/MAD4000-task-manager.git", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [{ type: "warn", msg: "Repo named 'MAD4000' (extra zero typo)" }] },
+  { name: "Sakwe Joris Eboka", id: "LMUI2637011", dept: "SOFTWARE ENGINEERING", github: "https://github.com/sakwejoris1/LMUI2637011-TaskManager/", recording: "https://drive.google.com/file/view", collab: "Yes", files: "5", flags: [{ type: "warn", msg: "Repo missing 'MAD400' prefix" }] },
+  { name: "EFUETMETSETENDONGAFACDAVID", id: "LMUI250772", dept: "Software Engineering", github: "https://github.com/Efuet-David/AD400-LMUI250772-TaskManager", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [{ type: "warn", msg: "Repo named 'AD400' not 'MAD400'" }] },
+  { name: "KIMBI BLESS TANGIRI", id: "LMUI250829", dept: "Software Engineering", github: "https://github.com/Blesskimbi/MAD400---LMUI250829---TASKMANAGER", recording: "https://drive.google.com/file/view", collab: "Yes", files: "5", flags: [] },
+  { name: "Nkengfua Caleb Nkengafac", id: "LMUI-24SWE296", dept: "Software Engineering", github: "https://github.com/nkengfuacaleb237/MAD400-LMUI-24SWE296-TaskManager", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [] },
+  { name: "Lacmago Magniapi Rebecca", id: "LMUI2637005", dept: "Software Engineering", github: "https://github.com/LACMAGO05/MAD400-LMUI2637005-TaskManager/tree/master", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [] },
+  { name: "Bah Dieudonne Simbo Nanah", id: "LMUI250715", dept: "Software Engineering", github: "https://github.com/BahDieudonne/LMUI250715-TaskManagementApp.git", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [{ type: "warn", msg: "Repo missing 'MAD400' prefix" }] },
+  { name: "ZIPOH CHELSEA NJEUPIEN", id: "LMUI0987", dept: "SOFTWARE ENGINEERING", github: "https://github.com/ZIPOH/MAD400-LMUI250987-TaskManager1.git", recording: "[INVALID: wrote 'Okay sir']", collab: "Yes", files: "9+", flags: [{ type: "critical", msg: "No screen recording submitted — wrote 'Okay sir'" }] },
+  { name: "RODRIQUE PIXIE TSOPMOH", id: "LMUI250939", dept: "Software Engineering", github: "https://github.com/RodPix/MAD400-LMUI250939-TaskManager", recording: "https://drive.google.com/file/view", collab: "Yes", files: "5", flags: [] },
+  { name: "Ndunji Fabrice Biyeh", id: "LMUI250882", dept: "SWE", github: "https://github.com/ndunjifabrice919-wq/MAD400-LMUI250882-TaskManager.git", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [] },
+  { name: "Ngo Baone Essoubat Marilyne Vera", id: "LMUI250893", dept: "Software Engineering", github: "https://github.com/NgoBaone/MAD400-LMUI250893-TaskManager.git", recording: "[INVALID: docs.google.com/videos link]", collab: "Yes", files: "6–8", flags: [{ type: "critical", msg: "Recording link is invalid (docs.google.com/videos format)" }] },
+  { name: "NFOR RANDOF FANYU", id: "LMUI250887", dept: "SWE", github: "https://github.com/RANDOF483/MAD400--LMUI250887--Taskmanager.git", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [] },
+  { name: "Divine Chinecherem Nnamdi", id: "LMUI-24SWE287", dept: "Software Engineering", github: "https://github.com/Mck-Dior/MAD400-LMUI24SWE287-TaskManager.git", recording: "[INVALID: submitted GitHub link instead of video]", collab: "Yes", files: "6–8", flags: [{ type: "critical", msg: "Recording field has GitHub repo link, not a video" }] },
+  { name: "Efenzia Fuafuelak Romanus", id: "LMUI260770", dept: "Software Engineering", github: "https://github.com/Tech-Roman/MAD400-LMUI260770-TASKMANAGER", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [] },
+  { name: "FUNWI CHELSEA NCHANGNWI", id: "LMUI24SWE291", dept: "Software Engineering", github: "https://github.com/FunwiChelsea/-MAD400FunwiChelseaNchangnwiTaskManager.git", recording: "https://drive.google.com/file/view", collab: "No", files: "6–8", flags: [{ type: "warn", msg: "Lecturer NOT added as collaborator" }] },
+  { name: "WAINKEM BISMARK MBZINGEH", id: "LMUI250978", dept: "Software Engineering", github: "https://github.com/Bismark490/Bismark490-MAD400-LMUI250978-TaskManager.git", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [] },
+  { name: "BESINA SONIA KUSONA", id: "LMUI250724", dept: "Software Engineering", github: "https://github.com/BESINA-star/LMUI250724-TaskManagerApp.git", recording: "https://drive.google.com/file/view", collab: "Yes", files: "5", flags: [{ type: "warn", msg: "Repo missing 'MAD400' prefix" }] },
+  { name: "AWEDEMO TESITA KUMBO", id: "LMUI250708", dept: "SOFTWARE ENGINEERING", github: "https://github.com/AwedemoTesitakumbo/MAD400-LMUI250708-TaskManager.git", recording: "https://drive.google.com/file/view", collab: "Yes", files: "5", flags: [] },
+  { name: "NDUM SAMUEL AMBANASOM", id: "LMUI250881", dept: "SOFTWARE ENGINEERING", github: "https://github.com/ambanasom/MAD400--LMUI250881--TaskManager", recording: "https://drive.google.com/file/view", collab: "Yes", files: "5", flags: [] },
+  { name: "Tikum Herickson fon", id: "LMUI250976", dept: "Software Engineering", github: "https://github.com/TIKUM-HERICSON-FON/MAD400-LMUI250976-TaskManager", recording: "https://drive.google.com/file/view", collab: "Yes", files: "5", flags: [] },
+  { name: "Fon Daniel Tsay Nana", id: "LMUI250804", dept: "SWE", github: "https://github.com/Fon-Daniel-Tsay-Nana/MAD400--LMUI250804--TaskManager.git", recording: "https://drive.google.com/file/view", collab: "Yes", files: "5", flags: [] },
+  { name: "Aishatou Ali", id: "LNUI250698", dept: "Computer Engineering", github: "https://github.com/Aishatouali/MAD400-lmui250698-Task_Manager", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [{ type: "warn", msg: "Student ID starts with LNUI not LMUI — verify" }] },
+  { name: "Tchomakam Ange Cabrel", id: "LMUI250967", dept: "Software Engineering", github: "https://github.com/Ange-Boyz/MAD400-LMUI250967-Task_Manager_App", recording: "https://drive.google.com/file/view", collab: "Yes", files: "5", flags: [] },
+  { name: "Nana Fabu Kongla Disue", id: "LMUI250871", dept: "Software Engineering", github: "https://github.com/Engr-Nana-Fabu/MAD400-LMUI250871-TaskManager.git", recording: "https://drive.google.com/file/view", collab: "No", files: "6–8", flags: [{ type: "warn", msg: "Lecturer NOT added as collaborator" }] },
+  { name: "SABOH STANROBORN", id: "LMUI250940", dept: "Software Engineering", github: "https://github.com/saboh-stanley/MAD400-LMUI250940-TaskManager", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [] },
+  { name: "NDIMBE DARLYNTON ANGWANG", id: "LMUI250877", dept: "Software Engineering", github: "https://github.com/Ndimbe15/MAD400-LMUI250877-TaskManager", recording: "https://drive.google.com/file/view", collab: "Yes", files: "5", flags: [] },
+  { name: "Ngoe Zelda Anagfac", id: "LMUI250896", dept: "Software Engineering", github: "https://github.com/zeldatek/MAD400--LMU1250896--TaskManager.git", recording: "https://drive.google.com/file/view", collab: "Yes", files: "5", flags: [] },
+  { name: "Mokube Dirian Okole", id: "LMUI-250864", dept: "Software Engineering", github: "https://github.com/diriansparck/MAD400-LMUI250864-TaskManager/tree/master", recording: "https://drive.google.com/file/view", collab: "Yes", files: "5", flags: [] },
+  { name: "AWAH TAMBAN BLAISE", id: "LMUI-24SWE282", dept: "SOFTWARE ENGINEERING", github: "https://github.com/Awah-Blaise/MAD400-LMUI24SWE282-TaskManager", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [] },
+  { name: "SONA KOLLE MARLYSE", id: "LMUI250946", dept: "SOFTWARE ENGINEERING", github: "https://github.com/Kandy-541/-MAD400-LMUI250946-TaskManagers.git", recording: "https://drive.google.com/file/view", collab: "Yes", files: "5", flags: [] },
+  { name: "NOFONDO EPITE FRANCIS", id: "LMUI250920", dept: "SWE", github: "[BROKEN: https://github.com/NOFONDO) — closing parenthesis, no repo]", recording: "https://drive.google.com/file/view", collab: "Yes", files: "5", flags: [{ type: "critical", msg: "GitHub URL is broken (has closing parenthesis, no repo name)" }] },
+  { name: "YOH PRECIOUS ENONGENE", id: "LMUI250985", dept: "SWE", github: "https://github.com/Yohprecious/MAD400-YOHLMUI250985-Taskmanager", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [] },
+  { name: "Achankeng Sylvia Kenu", id: "LMUI-24SWE281", dept: "Software Engineering", github: "https://github.com/Achanken/MAD400-LMUI-24SWE281-TaskManager", recording: "[INVALID: gdrive.google.com/drive/home — points to Drive home not video]", collab: "Yes", files: "6–8", flags: [{ type: "critical", msg: "Recording link points to Google Drive home, not a video" }] },
+  { name: "Asonganyi Maxwell Akanju", id: "LMUI250704", dept: "Software Engineering", github: "https://github.com/Asonganyimaxwellakanju/MAD400-LMUI250704-TaskManager", recording: "https://drive.google.com/file/view", collab: "Yes", files: "5", flags: [] },
+  { name: "AKEM DESMOND MEMBO", id: "LMUI250680", dept: "SOFTWARE ENGINEERING", github: "https://github.com/AKEMDESMONDMEMBO/MAD400-LMUI250680-TaskManager", recording: "https://drive.google.com/file/view", collab: "Yes", files: "5", flags: [] },
+  { name: "Jasmine Gael", id: "LMUI250825", dept: "SWE", github: "https://github.com/mbeughehgael-sudo/LMUI250825-TaskManager.git", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [{ type: "warn", msg: "Repo missing 'MAD400' prefix" }] },
+  { name: "Omerine Bunginy Egbe Yembe", id: "LMUI250931", dept: "Computer Engineering - SWE", github: "https://github.com/OmerineEgbe/MAD400-LMUI250931-TaskManager.git", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [] },
+  { name: "AJOCHA PRECIOUS TAJOCHA", id: "LMUI250677", dept: "SOFTWARE ENGINEERING", github: "https://github.com/Ajocha/MAD400-LMUI250677-TASK-MANAGER.git", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [{ type: "critical", msg: "ID LMUI250677 also claimed by 'Ambe precious Neba' — INVESTIGATE" }] },
+  { name: "Tayu Didier Shalanyuy", id: "LMUI250964", dept: "SWE", github: "https://github.com/TayuDidier/MAD400-LMUI250964-TaskManager/tree/master", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [] },
+  { name: "BABILA IVY-ROSE", id: "LMUI250714", dept: "Software Engineering", github: "https://github.com/IvyRoseTech/MAD400--LMUI250714--TaskManager.git", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [] },
+  { name: "Wanyu Blaise", id: "LMUI-24SWE299", dept: "Software Engineering", github: "https://github.com/wanyu777/AD400-LMUI-24SWE299-TaskManager", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [{ type: "warn", msg: "Repo named 'AD400' not 'MAD400'" }] },
+  { name: "Monie Serene Njilah", id: "LMUI250865", dept: "Software Engineering", github: "https://github.com/237monie/MAD400-LMUI250865-TaskManager", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [] },
+  { name: "WERIWOH NAOMI ABONG", id: "LMUI2637006", dept: "SOFTWARE ENGINEERING", github: "https://github.com/WeriwohNaomi/LMUI2637006-TaskManager/tree/master", recording: "https://drive.google.com/file/view", collab: "Yes", files: "5", flags: [{ type: "warn", msg: "Repo missing 'MAD400' prefix" }] },
+  { name: "NAI FAITH NJANG", id: "LMUI2646929", dept: "Software Engineering", github: "https://github.com/njangnai-jpg/MAD400-LMUI2646929-TaskManager/tree/master", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [] },
+  { name: "Nformi James Nganyu", id: "LMUI250888", dept: "Software Engineering", github: "https://github.com/Nf0rmijim/MAD400-LMUI250888-TaskManager", recording: "https://drive.google.com/file/view", collab: "Yes", files: "5", flags: [] },
+  { name: "Chi John Brown Asanji", id: "LMUI250747", dept: "Software Engineering", github: "https://github.com/JohnBrown67787/MAD400-LMUI250747-TaskManager", recording: "https://drive.google.com/file/view", collab: "Yes", files: "5", flags: [] },
+  { name: "NFOR-TABI ELAD LIUGGY", id: "LMUI-24SWE295", dept: "Software Engineering", github: "https://github.com/EladLiuggy/MAD400-LMUI-24SWE295-TaskManager", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [] },
+  { name: "SEIGNEU TSAMO KAMILE NATHAN", id: "LMUI250944", dept: "Software Engineering", github: "https://github.com/kamile1010/MAD400-LMUI250944-TaskManager.git", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [] },
+  { name: "Maximinus Mboni feh", id: "LMUI250845", dept: "SWE", github: "https://github.com/12MAXIMINUS3/LMUI250845/tree/master", recording: "https://drive.google.com/file/view", collab: "Yes", files: "5", flags: [{ type: "critical", msg: "ID LMUI250845 also claimed by 'MBONGWOH ULRICH' — INVESTIGATE" }] },
+  { name: "Ebua Treasure Bright", id: "LMUI25SWE087", dept: "Software Engineering", github: "https://github.com/ebuatreasure-afk/MAD400-LMUI25SWE087-TaskManager", recording: "https://drive.google.com/file/view", collab: "Yes", files: "5", flags: [] },
+  { name: "Ineube Kemmerick Ibanjoh", id: "LMUI24SWE293", dept: "SOFTWARE ENGINEERING", github: "https://github.com/ibanjohKem/IneubeKemmerickIbanjoh-MAD400-LMUI24SWE293-TaskManager.git", recording: "https://drive.google.com/file/view", collab: "No", files: "6–8", flags: [{ type: "warn", msg: "Lecturer NOT added as collaborator" }] },
+  { name: "USMANO ALI", id: "LMUI250977", dept: "Software Engineering", github: "https://github.com/usmanouA/MAD400-LMUI250977-TaskManager", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [] },
+  { name: "ONYINYECHI MIRACLE NWOGU", id: "LMUI250932", dept: "SOFTWARE ENGINEERING", github: "https://github.com/Onyinyechi-miracle-nwogu/MAD400-LMUI250932-TaskManager.git", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [] },
+  { name: "NJI UBRYNE FRU", id: "LMUI250910", dept: "Software Engineering (SWE)", github: "https://github.com/NjiUbryne04/SWE--LMUI250910--TaskManager", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [] },
+  { name: "Preston Njakoy Shey", id: "LMUI2636894", dept: "Software Engineering", github: "https://github.com/preston-solo/MAD400-LMAI2636894-TaskManager", recording: "https://drive.google.com/file/view", collab: "Yes", files: "5", flags: [] },
+  { name: "Ntah Alvin Tafah", id: "LMUI250922", dept: "Software Engineering", github: "https://github.com/Eng-Alvin/MAD400--LMUI240922--TaskManager.git", recording: "https://drive.google.com/file/view", collab: "No", files: "6–8", flags: [{ type: "warn", msg: "Lecturer NOT added as collaborator" }] },
+  { name: "Akonwie Angel Tawe", id: "LMUI250682", dept: "Software Engineering", github: "https://github.com/angeltawe/MAD400-LMUI250682-taskmanager.git", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [] },
+  { name: "Nnoubisi Glorymercy", id: "LMUI250918", dept: "Software Engineering", github: "https://github.com/GLORY-MERCY/MAD400--LMUI250918--TaskManager.git", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [] },
+  { name: "CHESAMI PRECIOUS FRI", id: "LMUI250745", dept: "Software Engineering", github: "https://github.com/precious-fri/MAD400-LMUI250745-TaskManager", recording: "https://drive.google.com/file/view", collab: "Yes", files: "6–8", flags: [] },
+  { name: "ATABONGFAC RODELLE STEPHANIE", id: "LMUI250707", dept: "SOFTWARE ENGINEERING", github: "https://github.com/nkengbejangcolette-cmd/MAD400-LMUI250707-TaskManager", recording: "https://drive.google.com/file/view", collab: "Yes", files: "5", flags: [] },
   { name: "Achua Ekkeh Favour Tabitha", id: "LMUI250669", dept: "Software Engineering", github: "https://github.com/AchuaFavour/LMUI250669-TaskManager#", recording: "https://drive.google.com/file/d/1pgyaTTbkf0e83LbXwTh5x4tFwIW0lwWO/view", collab: "Yes", files: "6–8", flags: [{ type: "warn", msg: "Repo missing 'MAD400' prefix; submitted 2 recording links" }] },
   { name: "mbekek perianne", id: "LMUI250847", dept: "Software Engineering", github: "https://github.com/MBEKEKperiane/MAD400--LMUI250847--TaskManager", recording: "https://drive.google.com/file/d/1yAQu2sToldVTfrE7r7A2j7UL83wJQDk6/view", collab: "Yes", files: "5", flags: [] },
   { name: "Sumenjabe Ramiel", id: "LMUI250949", dept: "Software Engineering", github: "https://github.com/sumenjabe/MAD400-LMUI250949-taskManager.git", recording: "https://drive.google.com/file/d/1-Cd9kUGQ-sxgM59UoYs4WBZiQhTBQkjm/view", collab: "Yes", files: "6–8", flags: [] },
@@ -77,7 +135,7 @@ const STUDENTS = [
   { name: "Dimordi Bosse Lucrece", id: "LMUI250754", dept: "Software Engineering", github: "https://github.com/Lucrece20/MAD400-LMUI250754-TaskManager", recording: "https://drive.google.com/file/d/1amgCgcnLnihNXPsTE0nn0L2w0cSsINOo/view", collab: "Yes", files: "9+", flags: [] },
   { name: "AKA THOMAS NTIWETABONG", id: "LMUI250678", dept: "SWE", github: "https://github.com/nkuitabongdestiny-wq/MAD400-LMUI250678-TaskManager", recording: "https://drive.google.com/file/d/1SvcPGdzyxHS180A7nRm7ZI7Kl86eoe1w/view", collab: "Yes", files: "5", flags: [] },
   { name: "Tambong Fidelis Junior", id: "LMUI250962", dept: "Software Engineering", github: "https://github.com/tambongjunior/MAD400-LMUI250962", recording: "https://drive.google.com/file/d/1mgKe9BJMvUe5a-8z2yAayEfbiBjR_4z_/view", collab: "Yes", files: "6–8", flags: [] },
-  { name: "Njeck Favour Lyviette", id: "LMU250905", dept: "Software Engineering", github: "https://github.com/njeckfavour84-cloud/Task-manager-assignment.git", recording: "[INVALID: typo in Drive link 'virw']", collab: "Yes", files: "6–8", flags: [{ type: "warn", msg: "Recording link has typo ('virw' instead of 'view') — verify" }] },
+  { name: "Njeck Favour Lyviette", id: "LMU250905", dept: "Software Engineering", github: "https://github.com/njeckfavour84-cloud/Task-manager-assignment.git", recording: "[INVALID: typo in Drive link 'virw' instead of 'view']", collab: "Yes", files: "6–8", flags: [{ type: "warn", msg: "Recording link has typo ('virw' instead of 'view') — verify" }] },
   { name: "NKEMBENI DABRAT BONYEKI", id: "LMUI250913", dept: "SOFTWARE ENGINEERING", github: "https://github.com/nkembenidabrat4-star/MAD400-LMUI250913-TaskManager", recording: "https://drive.google.com/file/d/1M_Bt__oZkDTy1V155T0aXyJNSrnUR1yz/view", collab: "Yes", files: "6–8", flags: [] },
   { name: "Babila Godlove Bless Tafry", id: "LMUI24SWE284", dept: "Software Engineering", github: "https://github.com/cedricngongeh92-tech/MAD400-Babila_Godlove-TaskManager", recording: "https://drive.google.com/file/d/1rwy_SjL7Zc17fF5HhTuZqDGR1sYTnV0K/view", collab: "Yes", files: "9+", flags: [] },
   { name: "Lois-Ann Mojoko", id: "LMUI250841", dept: "Software Engineering", github: "https://github.com/Mojoko123/MAD400-SWE20250841-TaskManager", recording: "https://drive.google.com/file/d/15ECXr24PXsk8VYA70kzmSdz3ludKTRyA/view", collab: "Yes", files: "5", flags: [] },
@@ -94,12 +152,15 @@ const STUDENTS = [
 ];
 
 const LECTURER_PASSWORD = "MAD400@Atumkeze2026";
-const STORAGE_KEY = "mad400-grades-v1";
+const STORAGE_KEY = "mad400-grades-v2";
+const STUDENTS_KEY = "mad400-students-v2";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const calcTotal = (g) => {
   if (!g) return null;
-  const vals = [g.s1, g.s2, g.s3, g.s4, g.s5].map(x => x === "" || x === undefined ? null : parseFloat(x));
+  const vals = [g.s1, g.s2, g.s3, g.s4, g.s5].map(x =>
+    x === "" || x === undefined || x === null ? null : parseFloat(x)
+  );
   if (vals.some(v => v === null || isNaN(v))) return null;
   return vals.reduce((a, b) => a + b, 0);
 };
@@ -129,19 +190,14 @@ const S = {
   loginSub: { fontSize: 11, color: "#64748b", marginBottom: 28 },
   tab: (active) => ({ flex: 1, padding: "9px 0", background: active ? "#5b8cff" : "transparent", border: active ? "1px solid #5b8cff" : "1px solid #252a38", borderRadius: 6, color: active ? "#fff" : "#64748b", fontFamily: "'DM Mono', monospace", fontSize: 12, cursor: "pointer", transition: "all 0.15s" }),
   input: { width: "100%", background: "#1c2030", border: "1px solid #252a38", borderRadius: 6, padding: "10px 12px", color: "#e2e8f0", fontFamily: "'DM Mono', monospace", fontSize: 13, outline: "none", boxSizing: "border-box", marginBottom: 12 },
-  btn: (variant = "primary") => ({
-    width: "100%", padding: "11px", borderRadius: 6, border: "none", fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 13, cursor: "pointer",
-    background: variant === "primary" ? "#5b8cff" : "#14171f",
-    color: variant === "primary" ? "#fff" : "#64748b",
-    marginTop: 4,
-  }),
+  btn: (variant = "primary") => ({ width: "100%", padding: "11px", borderRadius: 6, border: "none", fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 13, cursor: "pointer", background: variant === "primary" ? "#5b8cff" : "#14171f", color: variant === "primary" ? "#fff" : "#64748b", marginTop: 4 }),
   header: { background: "#14171f", borderBottom: "1px solid #252a38", padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 },
   h1: { fontFamily: "'Syne', sans-serif", fontSize: 18, fontWeight: 800, color: "#fff", margin: 0 },
   badge: (color) => ({ display: "inline-block", padding: "2px 8px", borderRadius: 10, fontSize: 10, fontWeight: 600, background: color + "22", color, border: `1px solid ${color}44` }),
 };
 
 // ─── Login Screen ─────────────────────────────────────────────────────────────
-function LoginScreen({ onLogin }) {
+function LoginScreen({ onLogin, students }) {
   const [role, setRole] = useState("student");
   const [studentId, setStudentId] = useState("");
   const [password, setPassword] = useState("");
@@ -157,7 +213,7 @@ function LoginScreen({ onLogin }) {
       }
     } else {
       const norm = studentId.trim().toUpperCase();
-      const match = STUDENTS.find(s => s.id.toUpperCase() === norm);
+      const match = students.find(s => s.id.toUpperCase() === norm);
       if (match) {
         onLogin("student", match.id);
       } else {
@@ -177,7 +233,7 @@ function LoginScreen({ onLogin }) {
         </div>
         {role === "student" ? (
           <>
-            <div style={{ fontSize: 11, color: "#64748b", marginBottom: 6 }}>Enter your Student ID to view your grade</div>
+            <div style={{ fontSize: 11, color: "#64748b", marginBottom: 6 }}>Enter your Matricule Number to view your grade</div>
             <input style={S.input} placeholder="e.g. LMUI250947" value={studentId}
               onChange={e => setStudentId(e.target.value)} onKeyDown={e => e.key === "Enter" && handleLogin()} />
           </>
@@ -198,8 +254,8 @@ function LoginScreen({ onLogin }) {
 }
 
 // ─── Student View ─────────────────────────────────────────────────────────────
-function StudentView({ studentId, grades, onLogout }) {
-  const student = STUDENTS.find(s => s.id === studentId);
+function StudentView({ studentId, grades, students, onLogout }) {
+  const student = students.find(s => s.id === studentId);
   const g = grades[studentId] || {};
   const total = calcTotal(g);
   const letter = letterGrade(total);
@@ -224,11 +280,10 @@ function StudentView({ studentId, grades, onLogout }) {
         <button onClick={onLogout} style={{ background: "none", border: "1px solid #252a38", borderRadius: 6, padding: "6px 14px", color: "#64748b", fontFamily: "'DM Mono', monospace", fontSize: 11, cursor: "pointer" }}>Sign Out</button>
       </div>
       <div style={{ maxWidth: 640, margin: "40px auto", padding: "0 24px" }}>
-        {/* Student card */}
         <div style={{ background: "#14171f", border: "1px solid #252a38", borderRadius: 10, padding: 24, marginBottom: 20 }}>
           <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 18, fontWeight: 700, color: "#fff" }}>{student.name}</div>
           <div style={{ fontSize: 11, color: "#64748b", marginTop: 3 }}>{student.id} · {student.dept}</div>
-          {student.flags.length > 0 && (
+          {student.flags && student.flags.length > 0 && (
             <div style={{ marginTop: 12 }}>
               {student.flags.map((f, i) => (
                 <div key={i} style={{ ...S.badge(f.type === "critical" ? "#ff4757" : "#ffb340"), display: "block", marginBottom: 4, padding: "4px 10px" }}>
@@ -239,7 +294,6 @@ function StudentView({ studentId, grades, onLogout }) {
           )}
         </div>
 
-        {/* Score display */}
         {total === null ? (
           <div style={{ background: "#14171f", border: "1px solid #252a38", borderRadius: 10, padding: 32, textAlign: "center", marginBottom: 20 }}>
             <div style={{ fontSize: 14, color: "#64748b", marginBottom: 8 }}>Your grade has not been posted yet.</div>
@@ -250,18 +304,18 @@ function StudentView({ studentId, grades, onLogout }) {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
               <div>
                 <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>TOTAL SCORE</div>
-                <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 42, fontWeight: 800, color: scoreColor(total), lineHeight: 1 }}>{total}<span style={{ fontSize: 18, color: "#64748b" }}>/100</span></div>
+                <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 42, fontWeight: 800, color: scoreColor(total), lineHeight: 1 }}>
+                  {total}<span style={{ fontSize: 18, color: "#64748b" }}>/100</span>
+                </div>
               </div>
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 52, fontWeight: 800, color: scoreColor(total), lineHeight: 1 }}>{letter}</div>
                 <div style={{ fontSize: 10, color: "#64748b" }}>GRADE</div>
               </div>
             </div>
-            {/* Progress bar */}
             <div style={{ background: "#1c2030", borderRadius: 4, height: 6, overflow: "hidden" }}>
               <div style={{ width: `${total}%`, height: "100%", background: scoreColor(total), borderRadius: 4, transition: "width 0.5s" }} />
             </div>
-            {/* Breakdown */}
             <div style={{ marginTop: 20 }}>
               <div style={{ fontSize: 11, color: "#64748b", marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.5px" }}>Score Breakdown</div>
               {criteria.map(c => {
@@ -292,8 +346,79 @@ function StudentView({ studentId, grades, onLogout }) {
   );
 }
 
-// ─── Grading Modal ─────────────────────────────────────────────────────────────
-function GradeModal({ student, idx, grades, onSave, onClose }) {
+// ─── Add Student Modal ────────────────────────────────────────────────────────
+function AddStudentModal({ onAdd, onClose, existingIds }) {
+  const [form, setForm] = useState({ name: "", id: "", dept: "Software Engineering", github: "", recording: "", collab: "Yes", files: "5" });
+  const [error, setError] = useState("");
+
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const handleAdd = () => {
+    if (!form.name.trim()) { setError("Name is required."); return; }
+    if (!form.id.trim()) { setError("Student ID (Matricule) is required."); return; }
+    if (existingIds.includes(form.id.trim().toUpperCase())) { setError("This Student ID already exists in the roster."); return; }
+    onAdd({ ...form, id: form.id.trim(), name: form.name.trim(), flags: [] });
+    onClose();
+  };
+
+  const inputStyle = { width: "100%", background: "#1c2030", border: "1px solid #252a38", borderRadius: 6, padding: "8px 10px", color: "#e2e8f0", fontFamily: "'DM Mono', monospace", fontSize: 12, outline: "none", boxSizing: "border-box", marginBottom: 10 };
+  const labelStyle = { fontSize: 10, color: "#64748b", marginBottom: 4, display: "block", textTransform: "uppercase", letterSpacing: "0.5px" };
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 400, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={e => e.target === e.currentTarget && onClose()}>
+      <div style={{ background: "#14171f", border: "1px solid #252a38", borderRadius: 12, padding: 28, width: 480, maxHeight: "90vh", overflowY: "auto", position: "relative" }}>
+        <button onClick={onClose} style={{ position: "absolute", right: 20, top: 18, background: "none", border: "none", color: "#64748b", fontSize: 20, cursor: "pointer" }}>×</button>
+        <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 17, fontWeight: 800, color: "#fff", marginBottom: 4 }}>Add New Student</div>
+        <div style={{ fontSize: 11, color: "#64748b", marginBottom: 20 }}>Manually add a student to the MAD400 roster</div>
+
+        <label style={labelStyle}>Full Name *</label>
+        <input style={inputStyle} placeholder="e.g. JOHN DOE SMITH" value={form.name} onChange={e => set("name", e.target.value)} />
+
+        <label style={labelStyle}>Matricule Number (Student ID) *</label>
+        <input style={inputStyle} placeholder="e.g. LMUI250999" value={form.id} onChange={e => set("id", e.target.value)} />
+
+        <label style={labelStyle}>Department</label>
+        <input style={inputStyle} placeholder="Software Engineering" value={form.dept} onChange={e => set("dept", e.target.value)} />
+
+        <label style={labelStyle}>GitHub Repo URL</label>
+        <input style={inputStyle} placeholder="https://github.com/username/MAD400-..." value={form.github} onChange={e => set("github", e.target.value)} />
+
+        <label style={labelStyle}>Screen Recording URL</label>
+        <input style={inputStyle} placeholder="https://drive.google.com/..." value={form.recording} onChange={e => set("recording", e.target.value)} />
+
+        <div style={{ display: "flex", gap: 12 }}>
+          <div style={{ flex: 1 }}>
+            <label style={labelStyle}>Collaborator Added?</label>
+            <select value={form.collab} onChange={e => set("collab", e.target.value)}
+              style={{ ...inputStyle, marginBottom: 10 }}>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+          <div style={{ flex: 1 }}>
+            <label style={labelStyle}>File Count</label>
+            <select value={form.files} onChange={e => set("files", e.target.value)}
+              style={{ ...inputStyle, marginBottom: 10 }}>
+              <option value="5">5</option>
+              <option value="6–8">6–8</option>
+              <option value="9+">9+</option>
+            </select>
+          </div>
+        </div>
+
+        {error && <div style={{ fontSize: 11, color: "#ff4757", marginBottom: 10 }}>⚠ {error}</div>}
+
+        <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 4 }}>
+          <button onClick={onClose} style={{ background: "#1c2030", border: "1px solid #252a38", borderRadius: 6, padding: "8px 20px", color: "#64748b", fontFamily: "'DM Mono', monospace", fontSize: 12, cursor: "pointer" }}>Cancel</button>
+          <button onClick={handleAdd} style={{ background: "#00d4aa", border: "none", borderRadius: 6, padding: "8px 20px", color: "#0d0f14", fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>Add Student</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Grade Modal ──────────────────────────────────────────────────────────────
+function GradeModal({ student, grades, onSave, onClose }) {
   const existing = grades[student.id] || {};
   const [form, setForm] = useState({ s1: existing.s1 || "", s2: existing.s2 || "", s3: existing.s3 || "", s4: existing.s4 || "", s5: existing.s5 || "", notes: existing.notes || "" });
 
@@ -306,7 +431,6 @@ function GradeModal({ student, idx, grades, onSave, onClose }) {
   ];
 
   const total = calcTotal(form);
-
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   return (
@@ -316,7 +440,7 @@ function GradeModal({ student, idx, grades, onSave, onClose }) {
         <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 17, fontWeight: 800, color: "#fff", marginBottom: 2 }}>{student.name}</div>
         <div style={{ fontSize: 11, color: "#64748b", marginBottom: 20 }}>{student.id} · {student.dept}</div>
 
-        {student.flags.length > 0 && (
+        {student.flags && student.flags.length > 0 && (
           <div style={{ marginBottom: 16 }}>
             {student.flags.map((f, i) => (
               <span key={i} style={{ ...S.badge(f.type === "critical" ? "#ff4757" : "#ffb340"), marginRight: 6, marginBottom: 4, display: "inline-block" }}>
@@ -330,9 +454,13 @@ function GradeModal({ student, idx, grades, onSave, onClose }) {
         <div style={{ marginBottom: 14 }}>
           <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>Links</div>
           <div style={{ fontSize: 11 }}>
-            {student.github.startsWith("[") ? <span style={{ color: "#ff4757" }}>⚠ {student.github}</span> : <a href={student.github} target="_blank" rel="noreferrer" style={{ color: "#5b8cff", textDecoration: "none" }}>⎈ GitHub</a>}
+            {!student.github || student.github.startsWith("[")
+              ? <span style={{ color: "#ff4757" }}>⚠ {student.github || "No GitHub link"}</span>
+              : <a href={student.github} target="_blank" rel="noreferrer" style={{ color: "#5b8cff", textDecoration: "none" }}>⎈ GitHub</a>}
             <span style={{ margin: "0 8px", color: "#252a38" }}>|</span>
-            {student.recording.startsWith("[") ? <span style={{ color: "#ff4757" }}>✗ {student.recording}</span> : <a href={student.recording} target="_blank" rel="noreferrer" style={{ color: "#00d4aa", textDecoration: "none" }}>▶ Recording</a>}
+            {!student.recording || student.recording.startsWith("[")
+              ? <span style={{ color: "#ff4757" }}>✗ {student.recording || "No recording"}</span>
+              : <a href={student.recording} target="_blank" rel="noreferrer" style={{ color: "#00d4aa", textDecoration: "none" }}>▶ Recording</a>}
           </div>
         </div>
 
@@ -345,12 +473,9 @@ function GradeModal({ student, idx, grades, onSave, onClose }) {
               <div key={c.key} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
                 <div style={{ flex: 1, fontSize: 12 }}>{c.label}</div>
                 <div style={{ fontSize: 10, color: "#64748b" }}>/{c.max}</div>
-                <input
-                  type="number" min={0} max={c.max} step={0.5}
-                  value={form[c.key]}
+                <input type="number" min={0} max={c.max} step={0.5} value={form[c.key]}
                   onChange={e => set(c.key, e.target.value)}
-                  style={{ width: 60, background: "#1c2030", border: `1px solid ${!valid ? "#ff4757" : "#252a38"}`, borderRadius: 4, padding: "5px 8px", color: "#e2e8f0", fontFamily: "'DM Mono', monospace", fontSize: 13, textAlign: "center", outline: "none" }}
-                />
+                  style={{ width: 60, background: "#1c2030", border: `1px solid ${!valid ? "#ff4757" : "#252a38"}`, borderRadius: 4, padding: "5px 8px", color: "#e2e8f0", fontFamily: "'DM Mono', monospace", fontSize: 13, textAlign: "center", outline: "none" }} />
               </div>
             );
           })}
@@ -379,19 +504,22 @@ function GradeModal({ student, idx, grades, onSave, onClose }) {
 }
 
 // ─── Lecturer Dashboard ────────────────────────────────────────────────────────
-function LecturerDashboard({ grades, onSave, onLogout }) {
+function LecturerDashboard({ grades, students, onSave, onAddStudent, onLogout }) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [sort, setSort] = useState(null);
   const [sortDir, setSortDir] = useState(1);
   const [modal, setModal] = useState(null);
-  const [saving, setSaving] = useState(false);
+  const [showAddStudent, setShowAddStudent] = useState(false);
+  const [toast, setToast] = useState("");
+
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2500); };
 
   const isFlagged = s => s.flags && s.flags.length > 0;
-  const hasNoRec = s => s.recording.startsWith("[");
+  const hasNoRec = s => !s.recording || s.recording.startsWith("[");
   const hasNoCollab = s => s.collab === "No";
 
-  const filtered = STUDENTS.map((s, i) => ({ ...s, _i: i })).filter(s => {
+  const filtered = students.map((s, i) => ({ ...s, _i: i })).filter(s => {
     const q = search.toLowerCase();
     const matchQ = !q || s.name.toLowerCase().includes(q) || s.id.toLowerCase().includes(q) || s.dept.toLowerCase().includes(q);
     if (!matchQ) return false;
@@ -412,29 +540,28 @@ function LecturerDashboard({ grades, onSave, onLogout }) {
     return String(a[sort]).localeCompare(String(b[sort])) * sortDir;
   });
 
-  const allTotals = STUDENTS.map(s => calcTotal(grades[s.id])).filter(x => x !== null);
+  const allTotals = students.map(s => calcTotal(grades[s.id])).filter(x => x !== null);
   const gradedCount = allTotals.length;
   const avg = gradedCount > 0 ? Math.round(allTotals.reduce((a, b) => a + b, 0) / gradedCount) : null;
-  const flagCount = STUDENTS.filter(isFlagged).length;
+  const flagCount = students.filter(isFlagged).length;
 
   const toggleSort = (col) => {
     if (sort === col) setSortDir(d => d * -1);
     else { setSort(col); setSortDir(1); }
   };
 
-  const handleSaveGrade = async (sid, form) => {
-    setSaving(true);
-    await onSave(sid, form);
-    setSaving(false);
+  const handleSaveGrade = (sid, form) => {
+    onSave(sid, form);
     setModal(null);
+    showToast("Grade saved ✓");
   };
 
   const exportCSV = () => {
     const rows = [["#", "Name", "Student ID", "Department", "Collab", "Files", "Flags", "S1/20", "S2/30", "S3/30", "S4/10", "S5/10", "Total/100", "Notes"]];
-    STUDENTS.forEach((s, i) => {
+    students.forEach((s, i) => {
       const g = grades[s.id] || {};
       const total = calcTotal(g);
-      rows.push([i + 1, s.name, s.id, s.dept, s.collab, s.files, s.flags.map(f => f.msg).join("; "), g.s1 || "", g.s2 || "", g.s3 || "", g.s4 || "", g.s5 || "", total !== null ? total : "", g.notes || ""]);
+      rows.push([i + 1, s.name, s.id, s.dept, s.collab, s.files, (s.flags || []).map(f => f.msg).join("; "), g.s1 || "", g.s2 || "", g.s3 || "", g.s4 || "", g.s5 || "", total !== null ? total : "", g.notes || ""]);
     });
     const csv = rows.map(r => r.map(x => `"${String(x).replace(/"/g, '""')}"`).join(",")).join("\n");
     const a = document.createElement("a");
@@ -444,12 +571,12 @@ function LecturerDashboard({ grades, onSave, onLogout }) {
   };
 
   const filterBtns = [
-    { key: "all", label: "All", count: STUDENTS.length },
-    { key: "flagged", label: "⚠ Flagged", count: STUDENTS.filter(isFlagged).length },
-    { key: "no-recording", label: "No Recording", count: STUDENTS.filter(hasNoRec).length },
-    { key: "no-collaborator", label: "No Collaborator", count: STUDENTS.filter(hasNoCollab).length },
+    { key: "all", label: "All", count: students.length },
+    { key: "flagged", label: "⚠ Flagged", count: students.filter(isFlagged).length },
+    { key: "no-recording", label: "No Recording", count: students.filter(hasNoRec).length },
+    { key: "no-collaborator", label: "No Collaborator", count: students.filter(hasNoCollab).length },
     { key: "graded", label: "Graded", count: gradedCount },
-    { key: "ungraded", label: "Ungraded", count: STUDENTS.length - gradedCount },
+    { key: "ungraded", label: "Ungraded", count: students.length - gradedCount },
   ];
 
   return (
@@ -459,29 +586,23 @@ function LecturerDashboard({ grades, onSave, onLogout }) {
           <div style={S.h1}>MAD400 — Grading Dashboard</div>
           <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>Lecturer: Atumkeze · Flutter Task Manager · Deadline: 16 May 2026</div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-          <div style={{ textAlign: "right" }}>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 20, fontWeight: 700, color: "#5b8cff" }}>{STUDENTS.length}</div>
-            <div style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase" }}>Submissions</div>
-          </div>
-          <div style={{ textAlign: "right" }}>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 20, fontWeight: 700, color: "#ffb340" }}>{flagCount}</div>
-            <div style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase" }}>Flagged</div>
-          </div>
-          <div style={{ textAlign: "right" }}>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 20, fontWeight: 700, color: "#00d4aa" }}>{gradedCount}</div>
-            <div style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase" }}>Graded</div>
-          </div>
-          <div style={{ textAlign: "right" }}>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 20, fontWeight: 700, color: "#e2e8f0" }}>{avg ?? "—"}</div>
-            <div style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase" }}>Avg</div>
-          </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+          {[
+            { val: students.length, label: "Submissions", color: "#5b8cff" },
+            { val: flagCount, label: "Flagged", color: "#ffb340" },
+            { val: gradedCount, label: "Graded", color: "#00d4aa" },
+            { val: avg ?? "—", label: "Avg", color: "#e2e8f0" },
+          ].map(({ val, label, color }) => (
+            <div key={label} style={{ textAlign: "right" }}>
+              <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 20, fontWeight: 700, color }}>{val}</div>
+              <div style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase" }}>{label}</div>
+            </div>
+          ))}
           <button onClick={onLogout} style={{ background: "none", border: "1px solid #252a38", borderRadius: 6, padding: "6px 14px", color: "#64748b", fontFamily: "'DM Mono', monospace", fontSize: 11, cursor: "pointer" }}>Sign Out</button>
         </div>
       </div>
 
       <div style={{ maxWidth: 1600, margin: "0 auto", padding: "20px 24px" }}>
-        {/* Filter bar */}
         <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap", alignItems: "center" }}>
           <input style={{ ...S.input, width: 260, marginBottom: 0 }} placeholder="🔍 Search name, ID, dept…" value={search} onChange={e => setSearch(e.target.value)} />
           {filterBtns.map(fb => (
@@ -491,14 +612,20 @@ function LecturerDashboard({ grades, onSave, onLogout }) {
             </button>
           ))}
           <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-            <button onClick={exportCSV} style={{ background: "#14171f", border: "1px solid #252a38", borderRadius: 6, padding: "6px 14px", color: "#e2e8f0", fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 11, cursor: "pointer" }}>Export CSV</button>
+            <button onClick={() => setShowAddStudent(true)}
+              style={{ background: "#00d4aa22", border: "1px solid #00d4aa44", borderRadius: 6, padding: "6px 14px", color: "#00d4aa", fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 11, cursor: "pointer" }}>
+              + Add Student
+            </button>
+            <button onClick={exportCSV}
+              style={{ background: "#14171f", border: "1px solid #252a38", borderRadius: 6, padding: "6px 14px", color: "#e2e8f0", fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 11, cursor: "pointer" }}>
+              Export CSV
+            </button>
           </div>
         </div>
 
-        {/* Table */}
         <div style={{ background: "#14171f", border: "1px solid #252a38", borderRadius: 10, overflow: "hidden" }}>
           <div style={{ padding: "8px 16px", fontSize: 11, color: "#64748b", borderBottom: "1px solid #252a38", display: "flex", justifyContent: "space-between" }}>
-            <span>Showing {filtered.length} of {STUDENTS.length} students</span>
+            <span>Showing {filtered.length} of {students.length} students</span>
             <span>Click any row to grade</span>
           </div>
           <div style={{ overflowX: "auto" }}>
@@ -516,11 +643,12 @@ function LecturerDashboard({ grades, onSave, onLogout }) {
               <tbody>
                 {filtered.map((s, vi) => {
                   const total = calcTotal(grades[s.id]);
+                  const isCritical = (s.flags || []).some(f => f.type === "critical");
                   return (
                     <tr key={s.id} onClick={() => setModal(s)}
-                      style={{ borderBottom: "1px solid #252a38", cursor: "pointer", background: s.flags.some(f => f.type === "critical") ? "rgba(255,71,87,0.04)" : "transparent" }}
+                      style={{ borderBottom: "1px solid #252a38", cursor: "pointer", background: isCritical ? "rgba(255,71,87,0.04)" : "transparent" }}
                       onMouseEnter={e => e.currentTarget.style.background = "#1c2030"}
-                      onMouseLeave={e => e.currentTarget.style.background = s.flags.some(f => f.type === "critical") ? "rgba(255,71,87,0.04)" : "transparent"}>
+                      onMouseLeave={e => e.currentTarget.style.background = isCritical ? "rgba(255,71,87,0.04)" : "transparent"}>
                       <td style={{ padding: "9px 12px", color: "#64748b", fontSize: 11 }}>{vi + 1}</td>
                       <td style={{ padding: "9px 12px" }}>
                         <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 12, fontWeight: 600, color: "#fff" }}>{s.name}</div>
@@ -531,8 +659,13 @@ function LecturerDashboard({ grades, onSave, onLogout }) {
                         <span style={S.badge(s.collab === "Yes" ? "#00d4aa" : "#ff4757")}>{s.collab === "Yes" ? "✓ Yes" : "✗ No"}</span>
                       </td>
                       <td style={{ padding: "9px 12px", maxWidth: 220 }}>
-                        {s.flags.length === 0 ? <span style={{ fontSize: 10, color: "#464e5e" }}>—</span> :
-                          s.flags.map((f, fi) => <div key={fi} style={{ fontSize: 10, color: f.type === "critical" ? "#ff4757" : "#ffb340", marginBottom: 2 }}>{f.type === "critical" ? "🔴" : "🟡"} {f.msg.slice(0, 45)}{f.msg.length > 45 ? "…" : ""}</div>)}
+                        {!s.flags || s.flags.length === 0
+                          ? <span style={{ fontSize: 10, color: "#464e5e" }}>—</span>
+                          : s.flags.map((f, fi) => (
+                            <div key={fi} style={{ fontSize: 10, color: f.type === "critical" ? "#ff4757" : "#ffb340", marginBottom: 2 }}>
+                              {f.type === "critical" ? "🔴" : "🟡"} {f.msg.slice(0, 45)}{f.msg.length > 45 ? "…" : ""}
+                            </div>
+                          ))}
                       </td>
                       <td style={{ padding: "9px 12px" }}>
                         <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 16, fontWeight: 700, color: scoreColor(total) }}>{total ?? "—"}</span>
@@ -550,51 +683,81 @@ function LecturerDashboard({ grades, onSave, onLogout }) {
       </div>
 
       {modal && <GradeModal student={modal} grades={grades} onSave={handleSaveGrade} onClose={() => setModal(null)} />}
-      {saving && <div style={{ position: "fixed", bottom: 20, right: 20, background: "#5b8cff", color: "#fff", padding: "8px 16px", borderRadius: 6, fontSize: 12, fontFamily: "'Syne', sans-serif" }}>Saving…</div>}
+      {showAddStudent && (
+        <AddStudentModal
+          onAdd={onAddStudent}
+          onClose={() => setShowAddStudent(false)}
+          existingIds={students.map(s => s.id.toUpperCase())}
+        />
+      )}
+      {toast && (
+        <div style={{ position: "fixed", bottom: 24, right: 24, background: "#00d4aa", color: "#0d0f14", padding: "10px 18px", borderRadius: 8, fontSize: 12, fontFamily: "'Syne', sans-serif", fontWeight: 700, boxShadow: "0 4px 20px rgba(0,212,170,0.3)", zIndex: 500 }}>
+          {toast}
+        </div>
+      )}
     </div>
   );
 }
 
 // ─── Main App ─────────────────────────────────────────────────────────────────
 export default function App() {
-  const [session, setSession] = useState(null); // { role, id }
+  const [session, setSession] = useState(null);
   const [grades, setGrades] = useState({});
-  const [loadingGrades, setLoadingGrades] = useState(true);
+  const [students, setStudents] = useState(DEFAULT_STUDENTS);
+  const [loading, setLoading] = useState(true);
 
-  // Load grades from storage on mount
   useEffect(() => {
-    (async () => {
-      try {
-        const result = await window.storage.get(STORAGE_KEY);
-        if (result && result.value) setGrades(JSON.parse(result.value));
-      } catch (e) {
-        // Key doesn't exist yet — start empty
+    try {
+      const savedGrades = localStorage.getItem(STORAGE_KEY);
+      if (savedGrades) setGrades(JSON.parse(savedGrades));
+    } catch (e) { console.error("Failed to load grades", e); }
+
+    try {
+      const savedStudents = localStorage.getItem(STUDENTS_KEY);
+      if (savedStudents) {
+        const parsed = JSON.parse(savedStudents);
+        if (Array.isArray(parsed) && parsed.length > 0) setStudents(parsed);
       }
-      setLoadingGrades(false);
-    })();
+    } catch (e) { console.error("Failed to load students", e); }
+
+    setLoading(false);
   }, []);
 
-  const saveGrade = async (studentId, form) => {
+  const saveGrade = (studentId, form) => {
     const newGrades = { ...grades, [studentId]: { ...form, total: calcTotal(form) } };
     setGrades(newGrades);
-    try {
-      await window.storage.set(STORAGE_KEY, JSON.stringify(newGrades));
-    } catch (e) {
-      console.error("Storage save failed:", e);
-    }
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(newGrades)); }
+    catch (e) { console.error("Storage save failed:", e); }
   };
 
-  if (loadingGrades) {
-    return <div style={{ ...S.center, flexDirection: "column", gap: 12 }}>
-      <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 14, color: "#64748b" }}>Loading grades…</div>
-    </div>;
+  const addStudent = (newStudent) => {
+    const updated = [...students, newStudent];
+    setStudents(updated);
+    try { localStorage.setItem(STUDENTS_KEY, JSON.stringify(updated)); }
+    catch (e) { console.error("Student save failed:", e); }
+  };
+
+  if (loading) {
+    return (
+      <div style={{ ...S.center, flexDirection: "column", gap: 12 }}>
+        <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 14, color: "#64748b" }}>Loading portal…</div>
+      </div>
+    );
   }
 
-  if (!session) return <LoginScreen onLogin={(role, id) => setSession({ role, id })} />;
+  if (!session) return <LoginScreen onLogin={(role, id) => setSession({ role, id })} students={students} />;
 
   if (session.role === "lecturer") {
-    return <LecturerDashboard grades={grades} onSave={saveGrade} onLogout={() => setSession(null)} />;
+    return (
+      <LecturerDashboard
+        grades={grades}
+        students={students}
+        onSave={saveGrade}
+        onAddStudent={addStudent}
+        onLogout={() => setSession(null)}
+      />
+    );
   }
 
-  return <StudentView studentId={session.id} grades={grades} onLogout={() => setSession(null)} />;
+  return <StudentView studentId={session.id} grades={grades} students={students} onLogout={() => setSession(null)} />;
 }
